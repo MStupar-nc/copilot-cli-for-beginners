@@ -11,18 +11,40 @@ def get_user_choice() -> str:
     return input("Choose an option (1-5): ").strip()
 
 
+def parse_year(year_input: str):
+    """Parse year input into an integer within allowed range.
+
+    Returns a tuple (year, valid) where valid is False for invalid input.
+    """
+    from datetime import datetime
+    current_year = datetime.now().year
+    try:
+        year = int(year_input)
+    except (TypeError, ValueError):
+        return None, False
+    if 1450 <= year <= current_year:
+        return year, True
+    return None, False
+
+
 def get_book_details():
+    """Collect book details from user input and return (title, author, year, year_valid).
+
+    This function does not perform any printing; callers should handle display.
+    """
     title = input("Enter book title: ").strip()
     author = input("Enter author: ").strip()
 
     year_input = input("Enter publication year: ").strip()
-    try:
-        year = int(year_input)
-    except ValueError:
-        print("Invalid year. Defaulting to 0.")
-        year = 0
+    year, valid = parse_year(year_input)
 
-    return title, author, year
+    return title, author, year, valid
+
+
+def display_invalid_year():
+    from datetime import datetime
+    current = datetime.now().year
+    print(f"Invalid year. Please enter an integer between 1450 and {current}.")
 
 
 def print_books(books):
