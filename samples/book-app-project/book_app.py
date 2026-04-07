@@ -1,5 +1,6 @@
 import sys
 from books import BookCollection
+import utils
 
 
 # Global collection instance
@@ -29,12 +30,12 @@ def handle_list():
 def handle_add():
     print("\nAdd a New Book\n")
 
-    title = input("Title: ").strip()
-    author = input("Author: ").strip()
-    year_str = input("Year: ").strip()
+    title, author, year, year_valid = utils.get_book_details()
+    if not year_valid:
+        utils.display_invalid_year()
+        return
 
     try:
-        year = int(year_str) if year_str else 0
         collection.add_book(title, author, year)
         print("\nBook added successfully.\n")
     except ValueError as e:
@@ -59,16 +60,22 @@ def handle_find():
     show_books(books)
 
 
+def handle_unread():
+    books = collection.get_unread_books()
+    show_books(books)
+
+
 def show_help():
     print("""
 Book Collection Helper
 
 Commands:
-  list     - Show all books
-  add      - Add a new book
-  remove   - Remove a book by title
-  find     - Find books by author
-  help     - Show this help message
+  list         - Show all books
+  unread       - Show unread books (alias: list-unread)
+  add          - Add a new book
+  remove       - Remove a book by title
+  find         - Find books by author
+  help         - Show this help message
 """)
 
 
@@ -79,16 +86,19 @@ def main():
 
     command = sys.argv[1].lower()
 
-    if command == "list":
-        handle_list()
-    elif command == "add":
-        handle_add()
-    elif command == "remove":
-        handle_remove()
-    elif command == "find":
-        handle_find()
-    elif command == "help":
-        show_help()
+    commands = {
+        "list": handle_list,
+        "unread": handle_unread,
+        "list-unread": handle_unread,
+        "add": handle_add,
+        "remove": handle_remove,
+        "find": handle_find,
+        "help": show_help,
+    }
+
+    handler = commands.get(command)
+    if handler:
+        handler()
     else:
         print("Unknown command.\n")
         show_help()

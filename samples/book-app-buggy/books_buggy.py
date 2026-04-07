@@ -48,18 +48,26 @@ class BookCollection:
         return self.books
 
     def find_book_by_title(self, title: str) -> Optional[Book]:
-        # BUG 1: Case-sensitive comparison - "the hobbit" won't find "The Hobbit"
+        """Find a book by title using a case-insensitive, trimmed comparison.
+
+        This avoids mismatches from casing or extra whitespace.
+        """
+        if title is None:
+            return None
+
+        target = title.strip().lower()
         for book in self.books:
-            if book.title == title:
+            if book.title.strip().lower() == target:
                 return book
         return None
 
     def mark_as_read(self, title: str) -> bool:
-        # BUG 5: Marks ALL books as read instead of just the matching one
+        """Mark a single matching book as read. Returns True if updated."""
+        if not title or not title.strip():
+            raise ValueError("Title must not be empty")
         book = self.find_book_by_title(title)
         if book:
-            for b in self.books:
-                b.read = True
+            book.read = True
             self.save_books()
             return True
         return False
@@ -75,6 +83,12 @@ class BookCollection:
         return False
 
     def find_by_author(self, author: str) -> List[Book]:
-        """Find all books by a given author."""
-        # BUG 6: Exact match instead of partial - "Tolkien" won't find "J.R.R. Tolkien"
-        return [b for b in self.books if b.author == author]
+        """Find all books by a given author.
+
+        Performs a case-insensitive substring match so partial names match
+        (e.g., "Tolkien" matches "J.R.R. Tolkien").
+        """
+        if not author:
+            return []
+        target = author.strip().lower()
+        return [b for b in self.books if target in b.author.strip().lower()]
