@@ -136,3 +136,44 @@ def test_missing_and_corrupted_data_file(tmp_path, monkeypatch, caplog):
     col2 = BookCollection()
     assert col2.list_books() == []
     assert any("corrupt" in rec.message.lower() or "not valid json" in rec.message.lower() for rec in caplog.records)
+
+
+def test_get_unread_books_returns_only_unread_books():
+    # Arrange
+    collection = BookCollection()
+    collection.add_book("Book A", "Author 1", 2000)
+    collection.add_book("Book B", "Author 2", 2001)
+    collection.add_book("Book C", "Author 3", 2002)
+
+    # Act: mark Book B as read
+    assert collection.mark_as_read("Book B") is True
+    unread = collection.get_unread_books()
+    # Assert
+    titles = [b.title for b in unread]
+    assert titles == ["Book A", "Book C"]
+
+
+def test_get_unread_books_empty_when_all_read():
+    collection = BookCollection()
+    collection.add_book("One", "X", 1999)
+    collection.add_book("Two", "Y", 2005)
+    # Mark all as read
+    assert collection.mark_as_read("One") is True
+    assert collection.mark_as_read("Two") is True
+    assert collection.get_unread_books() == []
+
+
+def test_get_unread_books_empty_when_no_books():
+    collection = BookCollection()
+    assert collection.get_unread_books() == []
+
+
+def test_get_unread_books_preserves_insertion_order():
+    collection = BookCollection()
+    collection.add_book("First", "A", 2010)
+    collection.add_book("Second", "B", 2011)
+    collection.add_book("Third", "C", 2012)
+    # Mark Second as read, so unread should be First then Third
+    assert collection.mark_as_read("Second") is True
+    unread_titles = [b.title for b in collection.get_unread_books()]
+    assert unread_titles == ["First", "Third"]
